@@ -1,0 +1,508 @@
+<script type="text/javascript">
+        var gk_isXlsx = false;
+        var gk_xlsxFileLookup = {};
+        var gk_fileData = {};
+        function filledCell(cell) {
+          return cell !== '' && cell != null;
+        }
+        function loadFileData(filename) {
+        if (gk_isXlsx && gk_xlsxFileLookup[filename]) {
+            try {
+                var workbook = XLSX.read(gk_fileData[filename], { type: 'base64' });
+                var firstSheetName = workbook.SheetNames[0];
+                var worksheet = workbook.Sheets[firstSheetName];
+
+                // Convert sheet to JSON to filter blank rows
+                var jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, blankrows: false, defval: '' });
+                // Filter out blank rows (rows where all cells are empty, null, or undefined)
+                var filteredData = jsonData.filter(row => row.some(filledCell));
+
+                // Heuristic to find the header row by ignoring rows with fewer filled cells than the next row
+                var headerRowIndex = filteredData.findIndex((row, index) =>
+                  row.filter(filledCell).length >= filteredData[index + 1]?.filter(filledCell).length
+                );
+                // Fallback
+                if (headerRowIndex === -1 || headerRowIndex > 25) {
+                  headerRowIndex = 0;
+                }
+
+                // Convert filtered JSON back to CSV
+                var csv = XLSX.utils.aoa_to_sheet(filteredData.slice(headerRowIndex)); // Create a new sheet from filtered array of arrays
+                csv = XLSX.utils.sheet_to_csv(csv, { header: 1 });
+                return csv;
+            } catch (e) {
+                console.error(e);
+                return "";
+            }
+        }
+        return gk_fileData[filename] || "";
+        }
+        </script><!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Full Stack Development ePortfolio for CET138">
+    <title>Portfolio Home</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+       .stylish-name {
+    font-size: 3em; /* Large and bold */
+    font-weight: 900; /* Extra bold */
+    background: linear-gradient(90deg, #2d6789, #509cce); /* Gradient text */
+    -webkit-background-clip:  text;
+    -webkit-text-fill-color: transparent;
+     background-clip: text;
+    text-transform: uppercase; /* Uppercase letters */
+    letter-spacing: 2px; /* Space between letters */
+    text-shadow: 2px 2px 8px rgba(0,0,0,0.2); /* Soft shadow */
+    transition: transform 0.3s ease, text-shadow 0.3s ease;
+}
+.stylish-name:hover {
+    transform: scale(1.1); /* Slight grow on hover */
+    text-shadow: 4px 4px 12px rgba(0,0,0,0.3); /* Stronger shadow on hover */
+}
+
+
+        .about-section {
+  padding: 40px;
+  border: 3px solid #2980b9;   /* same border color as your theme */
+  border-radius: 10px;
+  margin: 30px auto;
+  background: #ffffff;          /* white to match your content boxes */
+  color: #2c3e50;               /* dark text for readability */
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.about-container {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 30px;
+}
+
+.about-image img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #2980b9;    /* matches theme blue */
+  box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+}
+
+.about-content {
+  max-width: 600px;
+}
+
+.about-content h2 {
+  margin-bottom: 10px;
+  color: #2471a3;              /* gradient blue variant */
+}
+
+.about-content h3 {
+  margin: 5px 0;
+  font-size: 1.5em;
+  color: #2980b9;              /* theme heading color */
+}
+
+.about-content a {
+  color: #2980b9;
+  text-decoration: none;
+  font-weight: bold;
+}
+
+.about-content a:hover {
+  color: #1a2a44;              /* darker hover for link */
+  text-decoration: underline;
+}
+/* Glow effect around profile image */
+.glow-img {
+  width: 180px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 4px solid #2980b9;
+  box-shadow: 0 0 20px rgba(41, 128, 185, 0.6);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.glow-img:hover {
+  transform: scale(1.1);
+  box-shadow: 0 0 30px rgba(41, 128, 185, 0.8);
+}
+
+/* Typing effect */
+.typing-title {
+  font-size: 1.5em;
+  font-weight: bold;
+  color: #2980b9;
+  height: 24px;
+  overflow: hidden;
+  border-right: none;  /* removed blue line */
+  white-space: nowrap;
+  margin-bottom: 5px;
+}
+
+/* Tagline style */
+.tagline {
+  font-style: italic;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+/* Skill icons */
+.skill-icon {
+  width: 32px;
+  height: 32px;
+  margin-right: 10px;
+  transition: transform 0.3s ease;
+}
+.skill-icon:hover {
+  transform: scale(1.2);
+}
+
+/* Dark mode compatibility */
+body.dark-mode .about-container {
+  background: linear-gradient(145deg, #34495e, #3e566e);
+}
+body.dark-mode .typing-title {
+  color: #f1c40f;
+}
+body.dark-mode .tagline {
+  color: #ecf0f1;
+}
+/* Projects Section */
+.projects-section {
+  background: linear-gradient(145deg, #f9f9f9, #eef2f7);
+}
+
+.section-title {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #2c3e50;
+}
+
+.project-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+}
+
+.project-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+}
+
+.project-card img {
+  height: 200px;
+  object-fit: cover;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Skills Section */
+.skills-section {
+  background: #fff;
+}
+
+.skill-card {
+  transition: transform 0.3s, box-shadow 0.3s;
+  background: #f9f9f9;
+}
+
+.skill-card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.skill-card img {
+  transition: transform 0.3s;
+}
+
+.skill-card:hover img {
+  transform: rotate(5deg) scale(1.1);
+}
+.col-md-20 {
+  flex: 0 0 20%;
+  max-width: 20%;
+}
+
+
+
+        html, body { height: 100%; margin: 0; }
+        body { font-family: Arial, sans-serif; background-color: #ffffff; line-height: 1.6; display: flex; flex-direction: column; min-height: 100vh; }
+        body.dark-mode { background-color: #2c3e50; color: #ffffff; }
+        body.dark-mode .welcome-section { background-color: #34495e; }
+        body.dark-mode .card { background-color: #34495e; }
+        .nav-list { display: flex; justify-content: space-between; align-items: center; list-style: none; padding: 10px 20px; background: linear-gradient(to right, #1a2a44, #2c3e50); }
+        .nav-list li { margin: 0 15px; }
+        .nav-list a { color: white; text-decoration: none; font-weight: bold; }
+        .nav-list a:hover { text-decoration: underline; }
+        .nav-icon { font-size: 1.5em; margin-left: auto; color: white; cursor: pointer; }
+        h1 { text-align: center; background: #2c3e50; color: white; padding: 15px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        h2 { text-align: center; background: linear-gradient(to right, #3498db, #5dade2); color: white; padding: 10px; border-radius: 5px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        p, .card-text { text-align: left; hyphens: none; word-break: break-word; font-size: 16px; line-height: 1.8; }
+        .welcome-section { min-height: 300px; max-width: 100%; margin: 0 auto 20px; padding: 20px; box-sizing: border-box; display: flex; flex-direction: column; justify-content: space-between; background-color: #ffffff; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.1); border: 3px solid #2c3e50; }
+        .card { transition: transform 0.3s ease; text-align: center; animation: fadeIn 1s ease-in; min-height: 180px; }
+        .card-body { padding: 15px; }
+        .card:hover { transform: scale(1.05); }
+        footer { margin-top: 60px; padding: 20px; text-align: center; background: linear-gradient(to right, #1a2a44, #2c3e50); color: white; border-top: 2px solid #1abc9c; box-shadow: 0 -2px 5px rgba(0,0,0,0.2); display: flex; justify-content: center; align-items: center; }
+        main { flex: 1 0 auto; }
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        @media (max-width: 576px) {
+            p, .card-text { text-align: left; hyphens: none; word-break: break-word; font-size: 16px; line-height: 1.8; }
+            footer { padding: 15px; }
+        }
+    </style>
+</head>
+<body>
+    <header class="container text-center my-4">
+        <h1>Full Stack Development ePortfolio</h1>
+        <p>Author: Prajwal Sharma | Module: CET138 Full Stack Development</p>
+    </header>
+
+    <nav class="container">
+        <ul class="nav-list">
+            <li><a href="index.html">Home</a></li>
+            <li><a href="fullstack.html">Full Stack</a></li>
+            <li><a href="html.html">HTML</a></li>
+            <li><a href="css.html">CSS</a></li>
+            <li><a href="bootstrap.html">Bootstrap</a></li>
+            <li><a href="javascript.html">JavaScript</a></li>
+            <li class="nav-icon" id="theme-toggle" aria-label="Theme toggle icon">☀️</li>
+        </ul>
+    </nav>
+
+    <main class="container my-5">
+        <section id="about" class="about-section">
+  <div class="about-container shadow-lg p-4 rounded" style="background: linear-gradient(145deg, #f0f4f8, #dce7f1);">
+  <!-- Profile Image with Glow -->
+  <div class="about-image" style="position: relative;">
+    <img src="profile.jpg" alt="Prajwal Sharma" class="glow-img">
+  </div>
+
+  <!-- About Content -->
+  <div class="about-content">
+    <h2>About me</h2>
+    <h3 class="stylish-name">Prajwal Sharma</h3>
+
+    <h3 class="typing-title"></h3> <!-- Typing effect title -->
+    <p class="tagline">Turning ideas into interactive experiences.</p>
+    <p>I passed +2 from Narayani Model Secondary School in 2023 and I am currently studying at ISMT College.</p>
+    <p>I am a passionate full stack developer in training, with a strong foundation in frontend and backend technologies. My goal is to gain hands-on industry experience, contribute to innovative projects, and grow expertise in modern web development and emerging technologies.</p>
+
+
+    <!-- GitHub & CV Buttons -->
+    <div class="mt-3">
+      <a href="https://github.com/prajol121-hue" target="_blank" class="btn btn-dark btn-sm me-2"> 🌐 Visit My GitHub</a>
+       <a href="https://www.linkedin.com/in/prajwal-sharma-6904b4381?utm_source=share&utm_campaign=share_via&utm_content=profile&utm_medium=android_app" target="_blank" class="btn btn-dark btn-sm">🔗 Visit My LinkedIn</a>
+    </div>
+  </div>
+</div>
+<!-- Projects Section -->
+<section id="projects" class="projects-section py-5">
+  <div class="container">
+    <h2 class="section-title text-center mb-4">My Projects</h2>
+    <div class="row g-4">
+
+      <!-- Project 1 -->
+      <div class="col-md-4">
+        <div class="card project-card shadow-lg rounded-3 h-200">
+          <img src="project 1.png" class="card-img-top project-img" alt="Portfolio Website" data-bs-toggle="modal" data-bs-target="#imageModal">
+
+          <div class="card-body">
+            <h5 class="card-title">Portfolio Website</h5>
+            <p class="card-text">A responsive personal website built with HTML, CSS, Javascript and Bootstrap to showcase my skills and work.</p>
+            <a href="https://github.com/prajol121-hue" target="_blank" class="btn btn-dark btn-sm me-2">GitHub</a>
+            <a href="#" target="_blank" class="btn btn-primary btn-sm">Live Demo</a>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 2 -->
+      <div class="col-md-4">
+        <div class="card project-card shadow-lg rounded-3 h-100">
+          <img src="project 2.jpg" class="card-img-top" alt="Grading System">
+          <div class="card-body">
+            <h5 class="card-title">Grading System (C#)</h5>
+            <p class="card-text">A console-based C# application that manages student grades using OOP, validation, and file handling.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Project 3 -->
+      <div class="col-md-4">
+        <div class="card project-card shadow-lg rounded-3 h-100">
+          <img src="project 3.png" class="card-img-top" alt="Number Guessing Game">
+          <div class="card-body">
+            <h5 class="card-title">Number Guessing Game</h5>
+            <p class="card-text">A fun C# console game where the player guesses the number with hints and replay options.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+<!-- Skills Section -->
+<section id="skills" class="skills-section py-5">
+  <div class="container">
+    <h2 class="section-title text-center mb-4">My Skills</h2>
+    <div class="row text-center">
+
+      <!-- Skill 1 -->
+      <div class="col-md-20 col-6 mb-4">
+        <div class="skill-card p-3 shadow-sm rounded">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/html5/html5-original.svg" width="60" alt="HTML">
+          <h6 class="mt-2">HTML</h6>
+        </div>
+      </div>
+
+      <!-- Skill 2 -->
+      <div class="col-md-20 col-6 mb-4">
+        <div class="skill-card p-3 shadow-sm rounded">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="60" alt="CSS">
+          <h6 class="mt-2">CSS</h6>
+        </div>
+      </div>
+
+      <!-- Skill 3 -->
+      <div class="col-md-20 col-6 mb-4">
+        <div class="skill-card p-3 shadow-sm rounded">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/javascript/javascript-original.svg" width="60" alt="JavaScript">
+          <h6 class="mt-2">JavaScript</h6>
+        </div>
+      </div>
+      <!-- Skill 4 -->
+      <div class="col-md-20 col-6 mb-4">
+        <div class="skill-card p-3 shadow-sm rounded">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/css3/css3-original.svg" width="60" alt="CSS">
+          <h6 class="mt-2">Bootstrap</h6>
+        </div>
+      </div>
+
+      <!-- Skill 5 -->
+      <div class="col-md-20 col-6 mb-4">
+        <div class="skill-card p-3 shadow-sm rounded">
+          <img src="https://cdn.jsdelivr.net/gh/devicons/devicon/icons/github/github-original.svg" width="60" alt="GitHub">
+          <h6 class="mt-2">GitHub</h6>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+</section>
+
+        <section class="welcome-section">
+            <h2>Explore my Portfolio</h2>
+            <p>This portfolio demonstrates skills in full stack development, covering HTML, CSS, Bootstrap, and JavaScript. Each section provides detailed explanations, practical demos, and adheres to accessibility standards.</p>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <div class="card" style="background-color: #e74c3c; color: #fff;">
+                        <div class="card-body">
+                            <h5 class="card-title">Full Stack Development</h5>
+                            <p class="card-text">Explores integration of front-end and back-end technologies for complete web applications.</p>
+                            <a href="fullstack.html" class="btn btn-light">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card" style="background-color: #1abc9c; color: #fff;">
+                        <div class="card-body">
+                            <h5 class="card-title">HTML</h5>
+                            <p class="card-text">Demonstrates HTML5’s role in creating structured, accessible web content.</p>
+                            <a href="html.html" class="btn btn-light">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card" style="background-color: #2980b9; color: #fff;">
+                        <div class="card-body">
+                            <h5 class="card-title">CSS</h5>
+                            <p class="card-text">Showcases CSS techniques for responsive and dynamic styling.</p>
+                            <a href="css.html" class="btn btn-light">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card" style="background-color: #8e44ad; color: #fff;">
+                        <div class="card-body">
+                            <h5 class="card-title">Bootstrap Framework</h5>
+                            <p class="card-text">Highlights Bootstrap’s tools for responsive design with pre-built components.</p>
+                            <a href="bootstrap.html" class="btn btn-light">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-4 mb-3">
+                    <div class="card" style="background-color: #f1c40f; color: #333;">
+                        <div class="card-body">
+                            <h5 class="card-title">JavaScript</h5>
+                            <p class="card-text">Illustrates JavaScript’s capabilities for interactivity and dynamic features.</p>
+                            <a href="javascript.html" class="btn btn-light">Explore Now</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="container">
+        <p>© Prajwal Sharma (Student ID: 240815271). All rights reserved.</p>
+        <p>Contact Me: <a href="tel:+9779842605257">+9779842605257</a> | <a href="mailto:ctse25e.pjl@ismt.edu.np">ctse25e.pjl@ismt.edu.np</a></p>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        const themeToggle = document.getElementById('theme-toggle');
+        themeToggle.addEventListener('click', () => {
+            document.body.classList.toggle('dark-mode');
+            const isDarkMode = document.body.classList.contains('dark-mode');
+            themeToggle.textContent = isDarkMode ? '🌙' : '☀️';
+            themeToggle.setAttribute('aria-label', isDarkMode ? 'Switch to light mode' : 'Switch to dark mode');
+            localStorage.setItem('theme', isDarkMode ? 'dark' : 'light');
+        });
+        const savedTheme = localStorage.getItem('theme');
+        if (savedTheme === 'dark') {
+            document.body.classList.add('dark-mode');
+            themeToggle.textContent = '🌙';
+            themeToggle.setAttribute('aria-label', 'Switch to light mode');
+        }
+        document.querySelectorAll('.card').forEach(card => {
+            card.addEventListener('mouseenter', () => card.style.transform = 'scale(1.05)');
+            card.addEventListener('mouseleave', () => card.style.transform = 'scale(1)');
+        });
+        
+    </script>
+    <script>
+    // Typing effect for title
+const titleText = "Full Stack Developer";
+let index = 0;
+const typingElement = document.querySelector('.typing-title');
+
+function typeTitle() {
+  if (index < titleText.length) {
+    typingElement.textContent += titleText.charAt(index);
+    index++;
+    setTimeout(typeTitle, 120);
+  }
+}
+
+typeTitle();
+</script>
+<script>
+const projectImages = document.querySelectorAll('.project-img');
+const modalImage = document.getElementById('modalImage');
+
+projectImages.forEach(img => {
+  img.addEventListener('click', () => {
+    modalImage.src = img.src;
+  });
+});
+</script>
+
+</body>
+</html>
